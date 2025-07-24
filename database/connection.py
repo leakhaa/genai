@@ -1,124 +1,90 @@
 """
 Database connection management for WMS Automation System
 """
-import cx_Oracle
-import psycopg2
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, scoped_session
-from sqlalchemy.pool import QueuePool
 from contextlib import contextmanager
 from loguru import logger
 from config.settings import get_config
 from database.models import Base
 
-config = get_config()
-
 class DatabaseManager:
     """Database connection and session management"""
     
-    def __init__(self, use_oracle=True):
+    def __init__(self, database_url=None):
         """
         Initialize database manager
         
         Args:
             use_oracle: Whether to use Oracle (True) or PostgreSQL (False)
         """
-        self.use_oracle = use_oracle
+        self.config = get_config()
+        self.database_url = database_url or self.config.DATABASE_URL
         self.engine = None
         self.session_factory = None
         self.Session = None
+        self.use_oracle = False # Default to False
         self._initialize_connection()
     
     def _initialize_connection(self):
-        """Initialize database connection and session factory"""
+        """Initialize database connection"""
         try:
-            if self.use_oracle:
-                self._setup_oracle_connection()
+            # Create engine based on database URL
+            if self.database_url.startswith('sqlite'):
+                self.engine = create_engine(
+                    self.database_url,
+                    echo=self.config.DEBUG,
+                    connect_args={"check_same_thread": False}  # For SQLite
+                )
+                self.use_oracle = False
+            elif self.database_url.startswith('oracle'):
+                self.engine = create_engine(
+                    self.database_url,
+                    echo=self.config.DEBUG
+                )
+                self.use_oracle = True
+            elif self.database_url.startswith('postgresql'):
+                self.engine = create_engine(
+                    self.database_url,
+                    echo=self.config.DEBUG
+                )
+                self.use_oracle = False
             else:
-                self._setup_postgres_connection()
+                # Fallback to PostgreSQL
+                self.engine = create_engine(
+                    self.config.postgres_url,
+                    echo=self.config.DEBUG
+                )
+                self.use_oracle = False
             
-            # Create session factory
-            self.session_factory = sessionmaker(bind=self.engine)
-            self.Session = scoped_session(self.session_factory)
-            
-            logger.info(f"Database connection initialized ({'Oracle' if self.use_oracle else 'PostgreSQL'})")
+            self.Session = scoped_session(sessionmaker(bind=self.engine))
+            logger.info(f"Database connection initialized: {self.database_url}")
             
         except Exception as e:
             logger.error(f"Failed to initialize database connection: {e}")
             raise
     
-    def _setup_oracle_connection(self):
-        """Setup Oracle database connection"""
-        try:
-            # Oracle connection string
-            dsn = config.oracle_dsn
-            
-            # Create engine with connection pooling
-            self.engine = create_engine(
-                f"oracle+cx_oracle://{dsn}",
-                poolclass=QueuePool,
-                pool_size=10,
-                max_overflow=20,
-                pool_pre_ping=True,
-                echo=config.DEBUG
-            )
-            
-            logger.info("Oracle database engine created successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to setup Oracle connection: {e}")
-            raise
-    
-    def _setup_postgres_connection(self):
-        """Setup PostgreSQL database connection"""
-        try:
-            # PostgreSQL connection URL
-            url = config.postgres_url
-            
-            # Create engine with connection pooling
-            self.engine = create_engine(
-                url,
-                poolclass=QueuePool,
-                pool_size=10,
-                max_overflow=20,
-                pool_pre_ping=True,
-                echo=config.DEBUG
-            )
-            
-            logger.info("PostgreSQL database engine created successfully")
-            
-        except Exception as e:
-            logger.error(f"Failed to setup PostgreSQL connection: {e}")
-            raise
-    
     def create_tables(self):
-        """Create all database tables"""
+        """Create all tables"""
         try:
             Base.metadata.create_all(self.engine)
             logger.info("Database tables created successfully")
         except Exception as e:
-            logger.error(f"Failed to create database tables: {e}")
+            logger.error(f"Failed to create tables: {e}")
             raise
     
     def drop_tables(self):
-        """Drop all database tables (use with caution!)"""
+        """Drop all tables"""
         try:
             Base.metadata.drop_all(self.engine)
-            logger.warning("All database tables dropped")
+            logger.info("Database tables dropped successfully")
         except Exception as e:
-            logger.error(f"Failed to drop database tables: {e}")
+            logger.error(f"Failed to drop tables: {e}")
             raise
     
     @contextmanager
     def get_session(self):
-        """
-        Context manager for database sessions
-        
-        Usage:
-            with db_manager.get_session() as session:
-                # Use session here
-                pass
-        """
+        """Get database session with automatic commit/rollback"""
         session = self.Session()
         try:
             yield session
@@ -130,143 +96,68 @@ class DatabaseManager:
         finally:
             session.close()
     
-    def execute_raw_sql(self, sql: str, params: dict = None):
-        """
-        Execute raw SQL query
-        
-        Args:
-            sql: SQL query string
-            params: Query parameters
-            
-        Returns:
-            Query results
-        """
+    def execute_raw_sql(self, query: str, parameters: dict = None):
+        """Execute raw SQL query"""
         try:
-            with self.get_session() as session:
-                result = session.execute(sql, params or {})
-                return result.fetchall()
+            with self.engine.connect() as connection:
+                result = connection.execute(text(query), parameters or {})
+                connection.commit()
+                return result
         except Exception as e:
             logger.error(f"Failed to execute raw SQL: {e}")
             raise
     
     def execute_plsql_procedure(self, procedure_name: str, parameters: list = None):
-        """
-        Execute PL/SQL stored procedure (Oracle only)
-        
-        Args:
-            procedure_name: Name of the stored procedure
-            parameters: List of parameters for the procedure
-            
-        Returns:
-            Procedure execution result
-        """
+        """Execute PL/SQL procedure (Oracle only)"""
         if not self.use_oracle:
-            raise ValueError("PL/SQL procedures are only supported with Oracle database")
+            logger.warning("PL/SQL procedures are only supported on Oracle databases")
+            return {"status": "skipped", "message": "PL/SQL not supported on this database"}
         
         try:
-            # Get raw Oracle connection
-            connection = self.engine.raw_connection()
-            cursor = connection.cursor()
-            
-            try:
-                # Execute stored procedure
-                cursor.callproc(procedure_name, parameters or [])
+            with self.engine.connect() as connection:
+                # Build procedure call
+                param_placeholders = ', '.join([f':param{i}' for i in range(len(parameters or []))])
+                query = f"BEGIN {procedure_name}({param_placeholders}); END;"
+                
+                # Execute procedure
+                result = connection.execute(text(query), {f'param{i}': param for i, param in enumerate(parameters or [])})
                 connection.commit()
                 
-                logger.info(f"Successfully executed PL/SQL procedure: {procedure_name}")
-                return {"success": True, "procedure": procedure_name}
-                
-            except Exception as e:
-                connection.rollback()
-                logger.error(f"Failed to execute PL/SQL procedure {procedure_name}: {e}")
-                raise
-            finally:
-                cursor.close()
-                connection.close()
+                logger.info(f"PL/SQL procedure {procedure_name} executed successfully")
+                return {"status": "success", "message": f"Procedure {procedure_name} executed"}
                 
         except Exception as e:
-            logger.error(f"Failed to get Oracle connection for PL/SQL: {e}")
-            raise
+            logger.error(f"Failed to execute PL/SQL procedure {procedure_name}: {e}")
+            return {"status": "error", "message": str(e)}
     
     def test_connection(self):
         """Test database connection"""
         try:
-            with self.get_session() as session:
-                if self.use_oracle:
-                    result = session.execute("SELECT 1 FROM DUAL").fetchone()
-                else:
-                    result = session.execute("SELECT 1").fetchone()
-                
-                if result:
-                    logger.info("Database connection test successful")
-                    return True
-                else:
-                    logger.error("Database connection test failed")
-                    return False
-                    
+            with self.engine.connect() as connection:
+                connection.execute(text("SELECT 1"))
+                logger.info("Database connection test successful")
+                return True
         except Exception as e:
             logger.error(f"Database connection test failed: {e}")
             return False
-    
-    def get_connection_info(self):
-        """Get database connection information"""
-        try:
-            with self.get_session() as session:
-                if self.use_oracle:
-                    # Oracle version query
-                    result = session.execute(
-                        "SELECT * FROM V$VERSION WHERE BANNER LIKE 'Oracle%'"
-                    ).fetchone()
-                    version = result[0] if result else "Unknown"
-                    db_type = "Oracle"
-                else:
-                    # PostgreSQL version query
-                    result = session.execute("SELECT version()").fetchone()
-                    version = result[0] if result else "Unknown"
-                    db_type = "PostgreSQL"
-                
-                return {
-                    "database_type": db_type,
-                    "version": version,
-                    "host": config.DB_HOST if self.use_oracle else config.POSTGRES_HOST,
-                    "connected": True
-                }
-                
-        except Exception as e:
-            logger.error(f"Failed to get connection info: {e}")
-            return {
-                "database_type": "Oracle" if self.use_oracle else "PostgreSQL",
-                "version": "Unknown",
-                "host": config.DB_HOST if self.use_oracle else config.POSTGRES_HOST,
-                "connected": False,
-                "error": str(e)
-            }
 
 # Global database manager instance
-db_manager = None
-
-def initialize_database(use_oracle=True):
-    """Initialize global database manager"""
-    global db_manager
-    db_manager = DatabaseManager(use_oracle=use_oracle)
-    return db_manager
-
-def get_db_manager():
-    """Get global database manager instance"""
-    global db_manager
-    if db_manager is None:
-        db_manager = initialize_database()
-    return db_manager
+db_manager = DatabaseManager()
 
 # Convenience functions
 def get_session():
-    """Get database session context manager"""
-    return get_db_manager().get_session()
+    """Get database session"""
+    return db_manager.get_session()
+
+def execute_raw_sql(query: str, parameters: dict = None):
+    """Execute raw SQL query"""
+    return db_manager.execute_raw_sql(query, parameters)
 
 def execute_plsql(procedure_name: str, parameters: list = None):
     """Execute PL/SQL procedure"""
-    return get_db_manager().execute_plsql_procedure(procedure_name, parameters)
+    return db_manager.execute_plsql_procedure(procedure_name, parameters)
 
-def execute_sql(sql: str, params: dict = None):
-    """Execute raw SQL"""
-    return get_db_manager().execute_raw_sql(sql, params)
+def initialize_database():
+    """Initialize database and create tables"""
+    db_manager.create_tables()
+    return db_manager

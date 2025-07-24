@@ -1,0 +1,81 @@
+2025-07-24 10:28:46 | INFO | connection:create_tables:71 - Database tables created successfully
+2025-07-24 10:28:46 | INFO | app:<module>:328 - Starting WMS Automation System...
+2025-07-24 10:28:47 | INFO | connection:create_tables:71 - Database tables created successfully
+2025-07-24 10:28:47 | INFO | app:<module>:328 - Starting WMS Automation System...
+2025-07-24 10:28:56 | INFO | app:report_issue:83 - New issue reported by warehouse.user@company.com: ASN456 is missing from the system. We expected it yesterday but it hasn't arrived yet....
+2025-07-24 10:28:56 | ERROR | issue_classifier:classify_issue:64 - Error in issue classification: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-07-24 10:28:56 | WARNING | issue_classifier:_create_fallback_classification:172 - Using fallback classification due to LLM failure
+2025-07-24 10:28:56 | ERROR | app:report_issue:110 - Error reporting issue: 'DevelopmentConfig' object has no attribute 'WAREHOUSE_ADMIN_EMAIL'
+2025-07-24 10:28:57 | INFO | app:report_issue:83 - New issue reported by receiving.clerk@company.com: PO123 is missing from ASN456. The ASN shows up but PO123 is not there....
+2025-07-24 10:28:57 | ERROR | issue_classifier:classify_issue:64 - Error in issue classification: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-07-24 10:28:57 | WARNING | issue_classifier:_create_fallback_classification:172 - Using fallback classification due to LLM failure
+2025-07-24 10:28:57 | ERROR | app:report_issue:110 - Error reporting issue: 'DevelopmentConfig' object has no attribute 'WAREHOUSE_ADMIN_EMAIL'
+2025-07-24 10:28:58 | INFO | app:report_issue:83 - New issue reported by floor.supervisor@company.com: Pallet PALT789 is missing from PO123. All other pallets are accounted for....
+2025-07-24 10:28:58 | ERROR | issue_classifier:classify_issue:64 - Error in issue classification: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-07-24 10:28:58 | WARNING | issue_classifier:_create_fallback_classification:172 - Using fallback classification due to LLM failure
+2025-07-24 10:28:58 | ERROR | app:report_issue:110 - Error reporting issue: 'DevelopmentConfig' object has no attribute 'WAREHOUSE_ADMIN_EMAIL'
+2025-07-24 10:28:59 | INFO | app:report_issue:83 - New issue reported by inventory.manager@company.com: There's a quantity mismatch for PO124. Excel shows 1000 units but system shows 950....
+2025-07-24 10:28:59 | ERROR | issue_classifier:classify_issue:64 - Error in issue classification: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-07-24 10:28:59 | WARNING | issue_classifier:_create_fallback_classification:172 - Using fallback classification due to LLM failure
+2025-07-24 10:28:59 | ERROR | app:report_issue:110 - Error reporting issue: 'DevelopmentConfig' object has no attribute 'WAREHOUSE_ADMIN_EMAIL'
+2025-07-24 10:29:00 | INFO | app:report_issue:83 - New issue reported by new.employee@company.com: Something is wrong with the warehouse system. Not sure what exactly....
+2025-07-24 10:29:00 | ERROR | issue_classifier:classify_issue:64 - Error in issue classification: 
+
+You tried to access openai.ChatCompletion, but this is no longer supported in openai>=1.0.0 - see the README at https://github.com/openai/openai-python for the API.
+
+You can run `openai migrate` to automatically upgrade your codebase to use the 1.0.0 interface. 
+
+Alternatively, you can pin your installation to the old version, e.g. `pip install openai==0.28`
+
+A detailed migration guide is available here: https://github.com/openai/openai-python/discussions/742
+
+2025-07-24 10:29:00 | WARNING | issue_classifier:_create_fallback_classification:172 - Using fallback classification due to LLM failure
+2025-07-24 10:29:00 | ERROR | app:report_issue:110 - Error reporting issue: 'DevelopmentConfig' object has no attribute 'WAREHOUSE_ADMIN_EMAIL'
+2025-07-24 10:29:02 | INFO | services:save_validation_result:444 - Saved Excel validation result 38867e37-15f5-4df5-a194-c9048256d917
+2025-07-24 10:29:02 | INFO | validator:validate_excel_file:88 - Excel validation completed for uploads/test_warehouse_data.xlsx
+2025-07-24 10:29:02 | ERROR | app:get_dashboard_data:187 - Error getting dashboard data: type object 'DashboardService' has no attribute 'get_dashboard_stats'
+2025-07-24 10:29:09 | ERROR | app:index:57 - Error loading dashboard: type object 'DashboardService' has no attribute 'get_dashboard_stats'
+2025-07-24 10:29:26 | INFO | connection:create_tables:71 - Database tables created successfully
+2025-07-24 10:29:26 | INFO | app:<module>:328 - Starting WMS Automation System...
+2025-07-24 10:29:30 | INFO | connection:create_tables:71 - Database tables created successfully
+2025-07-24 10:29:30 | INFO | app:<module>:328 - Starting WMS Automation System...
+2025-07-24 10:30:11 | INFO | validator:validate_excel_file:88 - Excel validation completed for uploads/demo_test.csv
+2025-07-24 10:30:22 | INFO | connection:create_tables:71 - Database tables created successfully
+2025-07-24 10:30:22 | INFO | app:<module>:328 - Starting WMS Automation System...
+2025-07-24 10:30:23 | INFO | validator:validate_excel_file:88 - Excel validation completed for uploads/demo_test.csv
