@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Alert - Quantity Mismatch</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #e74c3c;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        .alert-box {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 0 0 5px 5px;
+            font-size: 12px;
+        }
+        .action-required {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .quantity-comparison {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .variance-high {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .variance-medium {
+            color: #f39c12;
+            font-weight: bold;
+        }
+        .variance-low {
+            color: #27ae60;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 WMS ALERT - Quantity Mismatch</h1>
+    </div>
+    
+    <div class="content">
+        <div class="alert-box">
+            <strong>CRITICAL:</strong> A quantity discrepancy has been detected between Excel data and system records.
+        </div>
+        
+        <h2>Mismatch Details</h2>
+        <table class="details-table">
+            <tr>
+                <th>PO ID</th>
+                <td><strong>{{ po_id }}</strong></td>
+            </tr>
+            <tr>
+                <th>Reported By</th>
+                <td>{{ user_email }}</td>
+            </tr>
+            <tr>
+                <th>Detection Time</th>
+                <td>{{ validation_results.validated_at or 'N/A' }}</td>
+            </tr>
+            <tr>
+                <th>Validation Status</th>
+                <td>
+                    {% if validation_results.status == 'PASSED' %}
+                        <span class="variance-low">✅ PASSED</span>
+                    {% elif validation_results.status == 'WARNING' %}
+                        <span class="variance-medium">⚠️ WARNING</span>
+                    {% else %}
+                        <span class="variance-high">❌ FAILED</span>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+        
+        {% if validation_results %}
+        <h3>Quantity Comparison</h3>
+        <div class="quantity-comparison">
+            <table class="details-table">
+                <tr>
+                    <th>Source</th>
+                    <th>Quantity</th>
+                    <th>Variance</th>
+                </tr>
+                <tr>
+                    <td><strong>Excel File</strong></td>
+                    <td>{{ "%.2f"|format(validation_results.excel_total or 0) }}</td>
+                    <td rowspan="2" style="text-align: center; vertical-align: middle;">
+                        {% set variance_pct = validation_results.variance_percentage or 0 %}
+                        {% if variance_pct|abs < 0.1 %}
+                            <span class="variance-low">{{ "%.2f"|format(variance_pct) }}%</span>
+                        {% elif variance_pct|abs < 5.0 %}
+                            <span class="variance-medium">{{ "%.2f"|format(variance_pct) }}%</span>
+                        {% else %}
+                            <span class="variance-high">{{ "%.2f"|format(variance_pct) }}%</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>Database</strong></td>
+                    <td>{{ "%.2f"|format(validation_results.database_total or 0) }}</td>
+                </tr>
+            </table>
+            
+            <p><strong>Absolute Variance:</strong> {{ "%.2f"|format(validation_results.variance or 0) }} units</p>
+            <p><strong>Records Processed:</strong> {{ validation_results.total_records or 0 }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="action-required">
+            🔍 IMMEDIATE ACTION REQUIRED: Investigate and resolve quantity discrepancy
+        </div>
+        
+        <h3>Recommended Actions</h3>
+        <ul>
+            <li>Review the attached Excel file for data accuracy</li>
+            <li>Verify physical inventory counts for PO {{ po_id }}</li>
+            <li>Check for data entry errors in both systems</li>
+            <li>Investigate potential receiving discrepancies</li>
+            <li>Update system records with correct quantities</li>
+            <li>Implement corrective measures to prevent future mismatches</li>
+        </ul>
+        
+        <h3>Potential Causes</h3>
+        <ul>
+            <li>Manual data entry errors</li>
+            <li>System synchronization issues</li>
+            <li>Physical receiving discrepancies</li>
+            <li>Incomplete pallet processing</li>
+            <li>Timing differences between systems</li>
+        </ul>
+        
+        {% if has_excel %}
+        <div class="quantity-comparison">
+            📋 <strong>Excel File Attached:</strong> The original Excel file has been attached for your review and analysis.
+        </div>
+        {% endif %}
+        
+        <h3>Impact Assessment</h3>
+        <ul>
+            <li>Inventory accuracy may be compromised</li>
+            <li>Financial reporting could be affected</li>
+            <li>Customer order fulfillment may be impacted</li>
+            <li>Audit compliance issues may arise</li>
+        </ul>
+        
+        <h3>System Information</h3>
+        <p><strong>Generated by:</strong> WMS Automation System<br>
+        <strong>Alert Type:</strong> Quantity Mismatch<br>
+        <strong>Severity:</strong> High<br>
+        <strong>Validation Notes:</strong> {{ validation_results.notes or 'No additional notes available' }}</p>
+    </div>
+    
+    <div class="footer">
+        This is an automated alert from the Warehouse Management System.<br>
+        Please do not reply to this email. For support, contact the WMS team.
+    </div>
+</body>
+</html>

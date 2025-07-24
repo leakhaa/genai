@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Issue Resolved</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #27ae60;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        .success-box {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 0 0 5px 5px;
+            font-size: 12px;
+        }
+        .resolution-details {
+            background-color: #e8f5e8;
+            border-left: 4px solid #27ae60;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .screenshot-notice {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✅ Issue Resolved Successfully</h1>
+    </div>
+    
+    <div class="content">
+        <div class="success-box">
+            <h2>🎉 Great News!</h2>
+            <p>Your warehouse issue has been successfully resolved by our automated system.</p>
+        </div>
+        
+        <h2>Issue Summary</h2>
+        <table class="details-table">
+            <tr>
+                <th>Issue ID</th>
+                <td><strong>{{ issue_id }}</strong></td>
+            </tr>
+            <tr>
+                <th>Issue Type</th>
+                <td>{{ issue_details.issue_type }}</td>
+            </tr>
+            <tr>
+                <th>Original Problem</th>
+                <td>{{ issue_details.user_message }}</td>
+            </tr>
+            {% if issue_details.asn_id %}
+            <tr>
+                <th>ASN ID</th>
+                <td>{{ issue_details.asn_id }}</td>
+            </tr>
+            {% endif %}
+            {% if issue_details.po_id %}
+            <tr>
+                <th>PO ID</th>
+                <td>{{ issue_details.po_id }}</td>
+            </tr>
+            {% endif %}
+            {% if issue_details.pallet_id %}
+            <tr>
+                <th>Pallet ID</th>
+                <td>{{ issue_details.pallet_id }}</td>
+            </tr>
+            {% endif %}
+        </table>
+        
+        <h2>Resolution Details</h2>
+        <div class="resolution-details">
+            <h3>Status: {{ resolution_data.status }}</h3>
+            <p><strong>Resolved At:</strong> {{ resolution_data.resolved_at }}</p>
+            <p><strong>Action Taken:</strong> {{ resolution_data.action }}</p>
+            
+            <h4>Resolution Notes:</h4>
+            <p>{{ resolution_data.notes }}</p>
+        </div>
+        
+        {% if has_screenshot %}
+        <div class="screenshot-notice">
+            📊 <strong>Evidence Attached:</strong> A detailed screenshot showing the resolution has been attached to this email for your records.
+        </div>
+        {% endif %}
+        
+        <h3>What This Means</h3>
+        <ul>
+            <li>Your reported issue has been automatically identified and resolved</li>
+            <li>The warehouse system has been updated with the correct information</li>
+            <li>No further action is required from your side</li>
+            <li>You can continue with your warehouse operations normally</li>
+        </ul>
+        
+        <h3>Need Help?</h3>
+        <p>If you have any questions about this resolution or encounter any related issues, please:</p>
+        <ul>
+            <li>Contact the warehouse support team</li>
+            <li>Reference Issue ID: <strong>{{ issue_id }}</strong></li>
+            <li>Include any relevant screenshots or details</li>
+        </ul>
+        
+        <div class="success-box">
+            <strong>Thank you for using the WMS Automation System!</strong><br>
+            We're committed to resolving warehouse issues quickly and efficiently.
+        </div>
+    </div>
+    
+    <div class="footer">
+        This notification was generated automatically by the WMS Automation System.<br>
+        Issue resolved on {{ resolution_data.resolved_at }} | System Version 1.0
+    </div>
+</body>
+</html>

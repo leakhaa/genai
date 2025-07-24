@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Automation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .issue-form {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-group textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 5px;
+            margin: 1rem 0;
+        }
+        
+        .alert-success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .status-reported { background-color: #ffeaa7; color: #2d3436; }
+        .status-in-progress { background-color: #74b9ff; color: white; }
+        .status-resolved { background-color: #00b894; color: white; }
+        .status-escalated { background-color: #e17055; color: white; }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>🏭 WMS Automation Dashboard</h1>
+            <p>AI-Powered Warehouse Issue Resolution System</p>
+        </div>
+    </div>
+    
+    <div class="container">
+        <!-- Statistics Cards -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>📊 Total Issues</h3>
+                <div class="stat-number">{{ stats.total_issues or 0 }}</div>
+                <div class="stat-label">Last 30 days</div>
+            </div>
+            
+            <div class="card">
+                <h3>⏱️ Average Resolution</h3>
+                <div class="stat-number">{{ "%.1f"|format(stats.average_resolution_hours or 0) }}h</div>
+                <div class="stat-label">Hours to resolve</div>
+            </div>
+            
+            <div class="card">
+                <h3>✅ Resolution Rate</h3>
+                <div class="stat-number">
+                    {% set resolved = stats.status_distribution.get('RESOLVED', 0) %}
+                    {% set total = stats.total_issues or 1 %}
+                    {{ "%.0f"|format((resolved / total * 100) if total > 0 else 0) }}%
+                </div>
+                <div class="stat-label">Issues resolved automatically</div>
+            </div>
+            
+            <div class="card">
+                <h3>🔥 Most Common Issue</h3>
+                <div class="stat-number">
+                    {% if stats.type_distribution %}
+                        {% set top_issue = stats.type_distribution.keys() | list | first %}
+                        {{ top_issue.replace('_', ' ').title() }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </div>
+                <div class="stat-label">Issue type</div>
+            </div>
+        </div>
+        
+        <!-- Report Issue Form -->
+        <div class="issue-form">
+            <h2>🚨 Report New Issue</h2>
+            <p>Describe your warehouse issue and our AI system will automatically classify and resolve it.</p>
+            
+            <div id="alert-container"></div>
+            
+            <form id="issue-form">
+                <div class="form-group">
+                    <label for="user_email">Your Email:</label>
+                    <input type="email" id="user_email" name="user_email" required 
+                           placeholder="your.email@company.com">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Issue Description:</label>
+                    <textarea id="message" name="message" required 
+                              placeholder="Describe the issue... (e.g., 'PO123 is missing from ASN456', 'Quantity mismatch for pallet PALT789')"></textarea>
+                </div>
+                
+                <button type="submit" class="btn" id="submit-btn">
+                    🤖 Submit Issue for AI Analysis
+                </button>
+            </form>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>AI is analyzing your issue...</p>
+            </div>
+        </div>
+        
+        <!-- Issue Status Display -->
+        <div id="issue-result" style="display: none;" class="card">
+            <h3>📋 Issue Analysis Result</h3>
+            <div id="issue-details"></div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('issue-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submit-btn');
+            const loading = document.getElementById('loading');
+            const alertContainer = document.getElementById('alert-container');
+            const issueResult = document.getElementById('issue-result');
+            
+            // Show loading state
+            submitBtn.disabled = true;
+            loading.style.display = 'block';
+            alertContainer.innerHTML = '';
+            issueResult.style.display = 'none';
+            
+            try {
+                const formData = {
+                    user_email: document.getElementById('user_email').value,
+                    message: document.getElementById('message').value
+                };
+                
+                const response = await fetch('/api/report-issue', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Show success message
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>✅ Issue Submitted Successfully!</strong><br>
+                            Issue ID: <strong>${result.issue_id.substring(0, 8)}</strong><br>
+                            ${result.message}
+                        </div>
+                    `;
+                    
+                    // Show issue details
+                    const classification = result.classification;
+                    document.getElementById('issue-details').innerHTML = `
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Issue Type:</strong> 
+                            <span class="status-badge status-reported">${classification.issue_type}</span>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Priority:</strong> ${classification.priority}
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Recommended Action:</strong> ${classification.action}
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Estimated Resolution:</strong> ${classification.estimated_resolution_hours} hours
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <strong>Description:</strong> ${classification.description || 'AI-generated classification'}
+                        </div>
+                        ${classification.asn_id ? `<div><strong>ASN ID:</strong> ${classification.asn_id}</div>` : ''}
+                        ${classification.po_id ? `<div><strong>PO ID:</strong> ${classification.po_id}</div>` : ''}
+                        ${classification.pallet_id ? `<div><strong>Pallet ID:</strong> ${classification.pallet_id}</div>` : ''}
+                    `;
+                    issueResult.style.display = 'block';
+                    
+                    // Reset form
+                    document.getElementById('issue-form').reset();
+                    
+                } else {
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-error">
+                            <strong>❌ Error:</strong> ${result.error}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                alertContainer.innerHTML = `
+                    <div class="alert alert-error">
+                        <strong>❌ Network Error:</strong> Unable to submit issue. Please try again.
+                    </div>
+                `;
+            } finally {
+                // Hide loading state
+                submitBtn.disabled = false;
+                loading.style.display = 'none';
+            }
+        });
+        
+        // Auto-refresh statistics every 30 seconds
+        setInterval(async function() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+                if (data.success) {
+                    // Update statistics (simplified - in production you'd update specific elements)
+                    console.log('Dashboard stats updated:', data.statistics);
+                }
+            } catch (error) {
+                console.log('Failed to refresh dashboard stats');
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

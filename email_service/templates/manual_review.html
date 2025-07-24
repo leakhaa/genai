@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMS Manual Review Required</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #9b59b6;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 5px 5px 0 0;
+        }
+        .content {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border: 1px solid #ddd;
+        }
+        .alert-box {
+            background-color: #e8daef;
+            border: 1px solid #d7bde2;
+            color: #6c3483;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .details-table th, .details-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .details-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .footer {
+            background-color: #34495e;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 0 0 5px 5px;
+            font-size: 12px;
+        }
+        .action-required {
+            background-color: #9b59b6;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .escalation-notice {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>👥 Manual Review Required</h1>
+    </div>
+    
+    <div class="content">
+        <div class="alert-box">
+            <strong>ESCALATION:</strong> An issue has been identified that requires human intervention and cannot be resolved automatically.
+        </div>
+        
+        <div class="escalation-notice">
+            🚨 <strong>This issue has been escalated for manual review</strong><br>
+            The automated system was unable to classify or resolve this issue.
+        </div>
+        
+        <h2>Issue Details</h2>
+        <table class="details-table">
+            <tr>
+                <th>Issue ID</th>
+                <td><strong>{{ issue_id }}</strong></td>
+            </tr>
+            <tr>
+                <th>Issue Type</th>
+                <td>{{ issue_details.issue_type }}</td>
+            </tr>
+            <tr>
+                <th>Priority</th>
+                <td>{{ issue_details.priority }}</td>
+            </tr>
+            <tr>
+                <th>Reported By</th>
+                <td>{{ user_email }}</td>
+            </tr>
+            <tr>
+                <th>Reported Time</th>
+                <td>{{ issue_details.created_at }}</td>
+            </tr>
+        </table>
+        
+        <h3>Original Issue Description</h3>
+        <div class="alert-box">
+            {{ issue_details.user_message }}
+        </div>
+        
+        <div class="action-required">
+            👨‍💼 MANUAL INTERVENTION REQUIRED: Please review and resolve this issue
+        </div>
+        
+        <h3>Why Manual Review is Needed</h3>
+        <ul>
+            <li>The issue type could not be automatically classified</li>
+            <li>The problem description is ambiguous or unclear</li>
+            <li>Required data or context is missing</li>
+            <li>The issue falls outside of automated resolution capabilities</li>
+            <li>Human judgment is required for proper resolution</li>
+        </ul>
+        
+        <h3>Recommended Next Steps</h3>
+        <ol>
+            <li><strong>Contact the Reporter:</strong> Reach out to {{ user_email }} for additional details</li>
+            <li><strong>Investigate the Issue:</strong> Gather more information about the specific problem</li>
+            <li><strong>Determine Root Cause:</strong> Identify the underlying cause of the issue</li>
+            <li><strong>Implement Resolution:</strong> Take appropriate corrective action</li>
+            <li><strong>Update System:</strong> Record the resolution in the WMS system</li>
+            <li><strong>Follow Up:</strong> Confirm with the reporter that the issue is resolved</li>
+        </ol>
+        
+        <h3>Investigation Checklist</h3>
+        <ul>
+            <li>☐ Review system logs for related errors</li>
+            <li>☐ Check database records for data integrity</li>
+            <li>☐ Verify physical warehouse conditions</li>
+            <li>☐ Consult with relevant team members</li>
+            <li>☐ Document findings and resolution steps</li>
+            <li>☐ Update system configuration if needed</li>
+        </ul>
+        
+        <h3>Escalation Path</h3>
+        <p>If you need additional support or expertise:</p>
+        <ul>
+            <li><strong>Technical Issues:</strong> Contact IT Support Team</li>
+            <li><strong>Process Issues:</strong> Consult Operations Manager</li>
+            <li><strong>System Integration:</strong> Involve SAP Team</li>
+            <li><strong>Critical Issues:</strong> Notify Management</li>
+        </ul>
+        
+        <h3>Response Required</h3>
+        <div class="escalation-notice">
+            Please acknowledge receipt of this manual review request and provide an estimated resolution timeframe.
+        </div>
+        
+        <h3>System Information</h3>
+        <p><strong>Generated by:</strong> WMS Automation System<br>
+        <strong>Alert Type:</strong> Manual Review Required<br>
+        <strong>Severity:</strong> Requires Attention<br>
+        <strong>Issue ID:</strong> {{ issue_id }}</p>
+    </div>
+    
+    <div class="footer">
+        This is an automated escalation from the Warehouse Management System.<br>
+        Please respond to this request and update the system with resolution details.
+    </div>
+</body>
+</html>
